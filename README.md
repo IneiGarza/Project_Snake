@@ -7,13 +7,13 @@ Variables para la posición de la cabeza de la serpiente (x, y), la fruta (fruit
 
 **Funciones:**
 
-**Setup(): **
+**Setup():**
 Inicializa el juego, colocando la serpiente y la fruta en posiciones iniciales.
-**Draw(): **
+**Draw():**
 Dibuja el tablero de juego en la consola.
-**Input(): **
+**Input():**
 Detecta la entrada del teclado para mover la serpiente.
-**Logic(): **
+**Logic():**
 Actualiza la lógica del juego, moviendo la serpiente, detectando colisiones y comiendo frutas.
 **Bucle Principal:**
 Llama a las funciones Draw(), Input() y Logic() en un bucle infinito, con una pausa (Sleep(100)) para controlar la velocidad del juego.
