@@ -11,6 +11,21 @@ int tailX[100], tailY[100];
 int nTail;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
 enum eDirection dir;
+HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+COORD CursorPosition;
+
+void gotoxy(int x, int y) {
+    CursorPosition.X = x;
+    CursorPosition.Y = y;
+    SetConsoleCursorPosition(console, CursorPosition);
+}
+
+void HideCursor() {
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(console, &cursorInfo);
+    cursorInfo.bVisible = FALSE;
+    SetConsoleCursorInfo(console, &cursorInfo);
+}
 
 void Setup() {
     dir = STOP;
@@ -22,7 +37,7 @@ void Setup() {
 }
 
 void Draw() {
-    system("cls");
+    gotoxy(0, 0);
     for (int i = 0; i < WIDTH + 2; i++)
         printf("#");
     printf("\n");
@@ -127,7 +142,19 @@ void Logic() {
     }
 }
 
+void WelcomeScreen() {
+    system("cls");
+    printf("***********************************\n");
+    printf("*        Bienvenido al juego      *\n");
+    printf("*      Presiona cualquier tecla   *\n");
+    printf("*          para comenzar          *\n");
+    printf("***********************************\n");
+    getch();
+}
+
 int main() {
+    WelcomeScreen();
+    HideCursor();
     Setup();
     while (1) {
         Draw();
