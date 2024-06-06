@@ -38,3 +38,34 @@ Muestra un mensaje de bienvenida y espera a que el usuario presione una tecla pa
 **Doble Buffer:**
 
 Usamos la función gotoxy(0, 0) al principio de la función Draw() para mover el cursor al inicio de la consola antes de redibujar todo el tablero. Esto elimina el parpadeo.
+
+// Version III
+
+**Función ClearScreen:**
+
+ClearScreen(): Limpia completamente la consola, eliminando cualquier rastro de la pantalla anterior.
+
+**Pantalla de Inicio:**
+
+**WelcomeScreen():**
+
+Muestra un mensaje de bienvenida y espera a que el usuario presione una tecla. Luego limpia la pantalla usando ClearScreen().
+
+**Pantalla de "Game Over":**
+
+**GameOverScreen():**
+
+Muestra un mensaje de "Game Over" y la puntuación final. Espera a que el usuario presione una tecla para reiniciar el juego.
+
+**Lógica de Juego:**
+
+La variable gameOver controla cuándo termina el juego. Si gameOver es true, se muestra la pantalla de "Game Over" y se reinicia el juego después de presionar una tecla.
+Ocultar y Mostrar el Cursor:
+
+**HideCursor():**
+
+Oculta el cursor durante el juego para evitar parpadeos.
+
+**ShowCursor():**
+
+Muestra el cursor en la pantalla de "Game Over" para que el usuario pueda ver dónde está.
