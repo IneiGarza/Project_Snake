@@ -13,6 +13,7 @@ enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
 enum eDirection dir;
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 COORD CursorPosition;
+bool gameOver;
 
 void gotoxy(int x, int y) {
     CursorPosition.X = x;
@@ -27,13 +28,34 @@ void HideCursor() {
     SetConsoleCursorInfo(console, &cursorInfo);
 }
 
+void ShowCursor() {
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(console, &cursorInfo);
+    cursorInfo.bVisible = TRUE;
+    SetConsoleCursorInfo(console, &cursorInfo);
+}
+
+void ClearScreen() {
+    COORD topLeft = {0, 0};
+    DWORD written;
+    CONSOLE_SCREEN_BUFFER_INFO screen;
+    DWORD length;
+    GetConsoleScreenBufferInfo(console, &screen);
+    length = screen.dwSize.X * screen.dwSize.Y;
+    FillConsoleOutputCharacter(console, TEXT(' '), length, topLeft, &written);
+    FillConsoleOutputAttribute(console, screen.wAttributes, length, topLeft, &written);
+    SetConsoleCursorPosition(console, topLeft);
+}
+
 void Setup() {
+    gameOver = false;
     dir = STOP;
     x = WIDTH / 2;
     y = HEIGHT / 2;
     fruitX = rand() % WIDTH;
     fruitY = rand() % HEIGHT;
     score = 0;
+    nTail = 0;
 }
 
 void Draw() {
@@ -90,7 +112,8 @@ void Input() {
             dir = DOWN;
             break;
         case 'x':
-            exit(0);
+            gameOver = true;
+            break;
         }
     }
 }
@@ -130,8 +153,9 @@ void Logic() {
     if (y >= HEIGHT) y = 0; else if (y < 0) y = HEIGHT - 1;
 
     for (int i = 0; i < nTail; i++) {
-        if (tailX[i] == x && tailY[i] == y)
-            exit(0);
+        if (tailX[i] == x && tailY[i] == y) {
+            gameOver = true;
+        }
     }
 
     if (x == fruitX && y == fruitY) {
@@ -150,6 +174,18 @@ void WelcomeScreen() {
     printf("*          para comenzar          *\n");
     printf("***********************************\n");
     getch();
+    ClearScreen();
+}
+
+void GameOverScreen() {
+    ClearScreen();
+    printf("***********************************\n");
+    printf("*           Game Over             *\n");
+    printf("*      Presiona cualquier tecla   *\n");
+    printf("*          para reiniciar         *\n");
+    printf("***********************************\n");
+    printf("Score: %d\n", score);
+    getch();
 }
 
 int main() {
@@ -157,6 +193,12 @@ int main() {
     HideCursor();
     Setup();
     while (1) {
+        if (gameOver) {
+            ShowCursor();
+            GameOverScreen();
+            Setup();
+            HideCursor();
+        }
         Draw();
         Input();
         Logic();
