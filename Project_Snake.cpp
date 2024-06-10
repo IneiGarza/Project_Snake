@@ -6,14 +6,25 @@
 #define WIDTH 20
 #define HEIGHT 20
 
-int x, y, fruitX, fruitY, score;
+int x, y, fruitX, fruitY;
 int tailX[100], tailY[100];
 int nTail;
+int fruitCount;
+int maxFruits = 0;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
 enum eDirection dir;
+enum eDirection lastDir;
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 COORD CursorPosition;
 bool gameOver;
+
+// Dimensions of the console
+const int consoleWidth = 80;
+const int consoleHeight = 25;
+
+// Margins for centering the game
+const int marginX = (consoleWidth - (WIDTH + 2)) / 2;
+const int marginY = (consoleHeight - (HEIGHT + 4)) / 2;
 
 void gotoxy(int x, int y) {
     CursorPosition.X = x;
@@ -47,27 +58,50 @@ void ClearScreen() {
     SetConsoleCursorPosition(console, topLeft);
 }
 
+void SetConsoleSize(int width, int height) {
+    _COORD coord;
+    coord.X = width;
+    coord.Y = height;
+    _SMALL_RECT Rect;
+    Rect.Top = 0;
+    Rect.Left = 0;
+    Rect.Bottom = height - 1;
+    Rect.Right = width - 1;
+    SetConsoleScreenBufferSize(console, coord);
+    SetConsoleWindowInfo(console, TRUE, &Rect);
+}
+
 void Setup() {
     gameOver = false;
     dir = STOP;
+    lastDir = STOP;
     x = WIDTH / 2;
     y = HEIGHT / 2;
     fruitX = rand() % WIDTH;
     fruitY = rand() % HEIGHT;
-    score = 0;
+    fruitCount = 0;
     nTail = 0;
 }
 
-void Draw() {
-    gotoxy(0, 0);
+void DrawBorders() {
+    gotoxy(marginX, marginY);
     for (int i = 0; i < WIDTH + 2; i++)
         printf("#");
-    printf("\n");
-
     for (int i = 0; i < HEIGHT; i++) {
+        gotoxy(marginX, marginY + 1 + i);
+        printf("#");
+        gotoxy(marginX + WIDTH + 1, marginY + 1 + i);
+        printf("#");
+    }
+    gotoxy(marginX, marginY + 1 + HEIGHT);
+    for (int i = 0; i < WIDTH + 2; i++)
+        printf("#");
+}
+
+void DrawGame() {
+    for (int i = 0; i < HEIGHT; i++) {
+        gotoxy(marginX + 1, marginY + 1 + i);
         for (int j = 0; j < WIDTH; j++) {
-            if (j == 0)
-                printf("#");
             if (i == y && j == x)
                 printf("O");
             else if (i == fruitY && j == fruitX)
@@ -83,33 +117,29 @@ void Draw() {
                 if (!print)
                     printf(" ");
             }
-
-            if (j == WIDTH - 1)
-                printf("#");
         }
-        printf("\n");
     }
 
-    for (int i = 0; i < WIDTH + 2; i++)
-        printf("#");
-    printf("\n");
-    printf("Score: %d\n", score);
+    gotoxy(marginX, marginY + HEIGHT + 2);
+    printf("Fruits: %d", fruitCount);
+    gotoxy(marginX + WIDTH - 7, marginY + HEIGHT + 2); // Ajusta esta línea para mover el récord a la derecha
+    printf("Record: %d", maxFruits);
 }
 
 void Input() {
     if (_kbhit()) {
         switch (_getch()) {
         case 'a':
-            dir = LEFT;
+            if (lastDir != RIGHT) dir = LEFT;
             break;
         case 'd':
-            dir = RIGHT;
+            if (lastDir != LEFT) dir = RIGHT;
             break;
         case 'w':
-            dir = UP;
+            if (lastDir != DOWN) dir = UP;
             break;
         case 's':
-            dir = DOWN;
+            if (lastDir != UP) dir = DOWN;
             break;
         case 'x':
             gameOver = true;
@@ -132,6 +162,7 @@ void Logic() {
         prevX = prev2X;
         prevY = prev2Y;
     }
+    lastDir = dir;
     switch (dir) {
     case LEFT:
         x--;
@@ -149,20 +180,29 @@ void Logic() {
         break;
     }
 
-    if (x >= WIDTH) x = 0; else if (x < 0) x = WIDTH - 1;
-    if (y >= HEIGHT) y = 0; else if (y < 0) y = HEIGHT - 1;
+    // Colisión con paredes
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+        gameOver = true;
+    }
 
+    // Colisión con el cuerpo
     for (int i = 0; i < nTail; i++) {
         if (tailX[i] == x && tailY[i] == y) {
             gameOver = true;
         }
     }
 
+    // Comer la fruta
     if (x == fruitX && y == fruitY) {
-        score += 10;
+        fruitCount++;
+        if (fruitCount > maxFruits) {
+            maxFruits = fruitCount;
+        }
         fruitX = rand() % WIDTH;
         fruitY = rand() % HEIGHT;
         nTail++;
+        tailX[nTail - 1] = tailX[nTail - 2];
+        tailY[nTail - 1] = tailY[nTail - 2];
     }
 }
 
@@ -181,26 +221,30 @@ void GameOverScreen() {
     ClearScreen();
     printf("***********************************\n");
     printf("*           Game Over             *\n");
-    printf("*      Presiona cualquier tecla   *\n");
-    printf("*          para reiniciar         *\n");
+    printf("*       Presiona 'Enter' para     *\n");
+    printf("*            reiniciar              *\n");
     printf("***********************************\n");
-    printf("Score: %d\n", score);
-    getch();
+    printf("Fruits: %d\n", fruitCount);
+    printf("Record: %d\n", maxFruits);
+    while (_getch() != 13);  // 13 es el código ASCII de la tecla 'Enter'
     ClearScreen();
 }
 
 int main() {
+    SetConsoleSize(consoleWidth, consoleHeight); // Cambia el tamaño de la consola
     WelcomeScreen();
     HideCursor();
     Setup();
+    DrawBorders();
     while (1) {
         if (gameOver) {
             ShowCursor();
             GameOverScreen();
             Setup();
+            DrawBorders();
             HideCursor();
         }
-        Draw();
+        DrawGame();
         Input();
         Logic();
         Sleep(100); // sleep(10) for faster speed
