@@ -167,7 +167,7 @@ void Logic() {
 }
 
 void WelcomeScreen() {
-    system("cls");
+    ClearScreen();
     printf("***********************************\n");
     printf("*        Bienvenido al juego      *\n");
     printf("*      Presiona cualquier tecla   *\n");
@@ -186,6 +186,7 @@ void GameOverScreen() {
     printf("***********************************\n");
     printf("Score: %d\n", score);
     getch();
+    ClearScreen();
 }
 
 int main() {
